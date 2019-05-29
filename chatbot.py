@@ -237,7 +237,7 @@ def encoder_rnn(rnn_inputs, rnn_size, num_layers, keep_prob, sequence_length):
     return encoder_state
 
 #############################################################################################################################################
-#Decoding the training set
+#Decoding the training set       # STEP-21
 #############################################################################################################################################
 # here we decoded the observation the training set. here some observation will go into the Neural Network and update the weight -->
     # and improve the ability of ChatBot to talk like Human. 
@@ -255,7 +255,11 @@ def decode_training_set(encoder_state, decoder_cell, decoder_embedded_input, seq
     #now we have to prepare keys, values, core function, construct function for the attention
     # NB: tensorflow fun core has built in function and construct function as sec2sec subModule in Contrib module for prepare attention
     #*** Now we prepare training data for attention process
-    attention_keys, attention_values, attention_score_function, attention_construct_function = tf.contrib.seq2seq.prepare_attention(attention_states,
+    
+    #NB: I use tensorflow==1.13.1 || If use tensorflow==1.0(it have prepare_attention) || If use tensorflow==1.1.0(it have DynamicAttentionWrapper)
+        # || tensorflow==1.13 (tf.contrib.seq2seq.BahdanauAttention) 
+    # prepare_attention
+    attention_keys, attention_values, attention_score_function, attention_construct_function = tf.contrib.seq2seq.DynamicAttentionWrapper(attention_states,
                                                                                                                                     attention_option="bahdanau",
                                                                                                                                     num_units=decoder_cell.output_size)
     # attention_keys = is a key to compare with the target states
@@ -298,7 +302,7 @@ def decode_training_set(encoder_state, decoder_cell, decoder_embedded_input, seq
     
 
 ######################################################################################################################################
-# Decoding the test / Validation set
+# Decoding the test / Validation set      # STEP-22
 ######################################################################################################################################
 # Here we  do like decode_training_set function but this observation is like new kind of observation of test set and validation set and
     # this are the new observation which not used in training previously. Here we do some cross validation technique for 10% of training set.
@@ -322,7 +326,9 @@ def decode_test_set(encoder_state, decoder_cell, decoder_embedding_matrix, sos_i
     #now we have to prepare keys, values, core function, construct function for the attention
     # NB: tensorflow fun core has built in function and construct function as sec2sec subModule in Contrib module for prepare attention
     #*** Now we prepare training data for attention process
-    attention_keys, attention_values, attention_score_function, attention_construct_function = tf.contrib.seq2seq.prepare_attention(attention_states,
+    
+    # prepare_attention
+    attention_keys, attention_values, attention_score_function, attention_construct_function = tf.contrib.seq2seq.DynamicAttentionWrapper(attention_states,
                                                                                                                                     attention_option="bahdanau",
                                                                                                                                     num_units=decoder_cell.output_size)
     # attention_keys = is a key to compare with the target states
@@ -530,7 +536,7 @@ tf.reset_default_graph()
 session = tf.InteractiveSession()
     
 #################################################################################################################################################
-# Loading the Model Inputs   #Step-27
+# Loading the Inputs for Model  #Step-27
 #################################################################################################################################################
 
 # Here we will load inputs into our SEQ2SEQ Model
@@ -568,12 +574,36 @@ input_shape = tf.shape(inputs) # shape takes Tensor as a argument and Returns th
 #################################################################################################################################################
 # Gettings the Training and Test Predictions   #Step-30
 #################################################################################################################################################
+# epochs 
+# Here we will take training_predictions and test_predictions from seq2seq_model(inputs, targets, keep_prob, batch_size, sequence_length, answers_num_words, questions_num_words, encoder_embedding_size, decoder_embedding_size, rnn_size, num_layers, questionsWord2Int)
+    # function of PART-2 BUILDING SEQ2SEQ MODEL
 
-
-
-
-
-
+# most value of seq2seq_model() is feed from Hypo Parameters
+ # reverse = reverses the dimension of a tensor fo re-shaping and [-1] is index of start reversing
+training_predictions, test_predictions = seq2seq_model(tf.reverse(inputs, [-1]),
+                                                       targets,
+                                                       keep_prob,
+                                                       batch_size,
+                                                       sequence_length,
+                                                       len(answersWord2Int),
+                                                       len(questionsWord2Int),
+                                                       encoding_embedding_size,
+                                                       decoding_embedding_size,
+                                                       rnn_size,
+                                                       num_layers,
+                                                       questionsWord2Int)
+#   inputs = tf.reverse(inputs, [-1]),
+#   targets = targets,
+#   keep_prob = keep_prob,
+#   batch_size = batch_size,
+#   sequence_length = sequence_length,
+#   answers_num_words = len(answersWord2Int),
+#   questions_num_words = len(questionsWord2Int),
+#   encoder_embedding_size = encoding_embedding_size,
+#   decoder_embedding_size = decoding_embedding_size,
+#   rnn_size = rnn_size,
+#   num_layers = num_layers,
+#   questionsWord2Int = questionsWord2Int
 
 
 
